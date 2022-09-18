@@ -1,0 +1,27 @@
+---
+- hosts: all
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+  - name: Install nginx
+    ansible.builtin.apt:
+      name:
+      - nginx
+      - curl
+      state: present
+      update_cache: yes
+  - name: Waiting for nginx up and running
+    ansible.builtin.wait_for:
+      port: 80
+      delay: 5
+  - name: Execute curl to main page 
+    ansible.builtin.command: curl http://localhost:80
+    register: output_curl
+  - name: Persist reponse in localhost file
+    become: no
+    delegate_to: localhost
+    ansible.builtin.copy:
+      content: "{{ output_curl }}"
+      dest: ./output_curl.htm
+
